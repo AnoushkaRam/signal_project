@@ -6,12 +6,12 @@ import com.cardio_generator.outputs.OutputStrategy;
 
 public class AlertGenerator implements PatientDataGenerator {
 
-    public static final Random randomGenerator = new Random();
-    private boolean[] AlertStates; // false = resolved, true = pressed
+    private static final Random randomGenerator = new Random(); // is camelCase and madde the variable name private for correct encapsulation.
+    private boolean[] alertStates; // false = resolved, true = pressed   //changed the variable name to camelCase
 
     public AlertGenerator(int patientCount) {
-        AlertStates = new boolean[patientCount + 1];
-    }
+        alertStates = new boolean[patientCount + 1];
+    } //changed the variable name to camelCase
 
     @Override
     public void generate(int patientId, OutputStrategy outputStrategy) {
