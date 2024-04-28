@@ -26,6 +26,10 @@ import java.nio.file.Paths;
 import java.util.ArrayList;
 
 public class HealthDataSimulator {
+    // Simulates health data for multiple patients and outputs it using various strategies.
+    // This class serves as the main entry point for running the health data simulation.
+    //It allows customization of the number of patients and the output strategy.
+
 
     private static int patientCount = 50; // Default number of patients
     private static ScheduledExecutorService scheduler;
@@ -33,8 +37,9 @@ public class HealthDataSimulator {
     private static final Random random = new Random();
 
     public static void main(String[] args) throws IOException {
+        //Main method to run the health data simulation.
 
-        parseArguments(args);
+        parseArguments(args); //args Command-line arguments passed to the program.
 
         scheduler = Executors.newScheduledThreadPool(patientCount * 4);
 
@@ -45,64 +50,73 @@ public class HealthDataSimulator {
     }
 
     private static void parseArguments(String[] args) throws IOException {
+        //parses the command-line arguments and configures the simulation settings accordingly.
+        // Loop through each command-line argument
         for (int i = 0; i < args.length; i++) {
             switch (args[i]) {
                 case "-h":
+                    // Display help message and exit
                     printHelp();
                     System.exit(0);
                     break;
                 case "--patient-count":
+                    // Parse and set the number of patients for simulation
                     if (i + 1 < args.length) {
                         try {
                             patientCount = Integer.parseInt(args[++i]);
                         } catch (NumberFormatException e) {
+                            // Handle invalid input for patient count
                             System.err
                                     .println("Error: Invalid number of patients. Using default value: " + patientCount);
                         }
                     }
                     break;
                 case "--output":
+                    // Configure the output strategy based on the specified argument
                     if (i + 1 < args.length) {
                         String outputArg = args[++i];
                         if (outputArg.equals("console")) {
+                            // Set output strategy to console
                             outputStrategy = new ConsoleOutputStrategy();
-                        } else if (outputArg.startsWith("file:")) {
+                        } else if (outputArg.startsWith("file:")) { // Set output strategy to file
                             String baseDirectory = outputArg.substring(5);
                             Path outputPath = Paths.get(baseDirectory);
                             if (!Files.exists(outputPath)) {
                                 Files.createDirectories(outputPath);
                             }
                             outputStrategy = new fileOutputStrategy(baseDirectory);
-                        } else if (outputArg.startsWith("websocket:")) {
+                        } else if (outputArg.startsWith("websocket:")) { // Set output strategy to WebSocket
                             try {
                                 int port = Integer.parseInt(outputArg.substring(10));
                                 // Initialize your WebSocket output strategy here
-                                outputStrategy = new WebSocketOutputStrategy(port);
+                                outputStrategy = new WebSocketOutputStrategy(port); // Initialize WebSocket output strategy
                                 System.out.println("WebSocket output will be on port: " + port);
-                            } catch (NumberFormatException e) {
+                            } catch (NumberFormatException e) { // Handle invalid port number for WebSocket
                                 System.err.println(
                                         "Invalid port for WebSocket output. Please specify a valid port number.");
                             }
-                        } else if (outputArg.startsWith("tcp:")) {
+                        } else if (outputArg.startsWith("tcp:")) { // Set output strategy to TCP
                             try {
                                 int port = Integer.parseInt(outputArg.substring(4));
+
                                 // Initialize your TCP socket output strategy here
                                 outputStrategy = new TcpOutputStrategy(port);
                                 System.out.println("TCP socket output will be on port: " + port);
                             } catch (NumberFormatException e) {
                                 System.err.println("Invalid port for TCP output. Please specify a valid port number.");
                             }
-                        } else {
+                        } else { // if there is unknown output type
                             System.err.println("Unknown output type. Using default (console).");
                         }
                     }
                     break;
-                default:
+                default: // Unknown option
                     System.err.println("Unknown option '" + args[i] + "'");
                     printHelp();
                     System.exit(1);
             }
         }
+       // @throws IOException If an I/O error occurs while configuring the output strategy.
     }
 
     private static void printHelp() {
@@ -123,21 +137,27 @@ public class HealthDataSimulator {
     }
 
     private static List<Integer> initializePatientIds(int patientCount) {
-        List<Integer> patientIds = new ArrayList<>();
-        for (int i = 1; i <= patientCount; i++) {
-            patientIds.add(i);
+        //Initializes a list of patient IDs from 1 to the specified patient count.
+        //@param patientCount The number of patients to generate IDs for.
+        //@return A list of patient IDs.
+        List<Integer> patientIds = new ArrayList<>(); // Create a new list to store patient IDs
+        for (int i = 1; i <= patientCount; i++) { // Loop from 1 to the specified patient count
+            patientIds.add(i); // Add each patient ID to the list
         }
-        return patientIds;
+        return patientIds;  // Return the list of patient IDs
     }
 
     private static void scheduleTasksForPatients(List<Integer> patientIds) {
+        //Schedules data generation tasks for each patient.
+        //@param patientIds The list of patient IDs.
+        //// Initialize data generators for different types of patient data
         ECGDataGenerator ecgDataGenerator = new ECGDataGenerator(patientCount);
         BloodSaturationDataGenerator bloodSaturationDataGenerator = new BloodSaturationDataGenerator(patientCount);
         BloodPressureDataGenerator bloodPressureDataGenerator = new BloodPressureDataGenerator(patientCount);
         BloodLevelsDataGenerator bloodLevelsDataGenerator = new BloodLevelsDataGenerator(patientCount);
         AlertGenerator alertGenerator = new AlertGenerator(patientCount);
 
-        for (int patientId : patientIds) {
+        for (int patientId : patientIds) { // Schedule data generation tasks for each patient
             scheduleTask(() -> ecgDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);
             scheduleTask(() -> bloodSaturationDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.SECONDS);
             scheduleTask(() -> bloodPressureDataGenerator.generate(patientId, outputStrategy), 1, TimeUnit.MINUTES);
@@ -147,6 +167,10 @@ public class HealthDataSimulator {
     }
 
     private static void scheduleTask(Runnable task, long period, TimeUnit timeUnit) {
+        //Schedules a task to run at fixed intervals.
+        // @param task     The task to be executed.
+        //@param period   The time between each execution of the task.
+        //@param timeUnit The time unit for the period.
         scheduler.scheduleAtFixedRate(task, random.nextInt(5), period, timeUnit);
     }
 }
