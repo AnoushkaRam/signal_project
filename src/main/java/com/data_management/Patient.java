@@ -3,19 +3,13 @@ package com.data_management;
 import java.util.ArrayList;
 import java.util.List;
 
-/**
- * Represents a patient and manages their medical records.
- * This class stores patient-specific data, allowing for the addition and
- * retrieval
- * of medical records based on specified criteria.
- */
 public class Patient {
-    private int patientId;
-    private List<PatientRecord> patientRecords;
+    private int patientId;  // Unique identifier for the patient
+    private List<PatientRecord> patientRecords;  // List to store patient records
 
     /**
-     * Constructs a new Patient with a specified ID.
-     * Initializes an empty list of patient records.
+     * Constructor to initialize Patient object with patientId.
+     * Initializes an empty list for patient records.
      *
      * @param patientId the unique identifier for the patient
      */
@@ -25,33 +19,53 @@ public class Patient {
     }
 
     /**
-     * Adds a new record to this patient's list of medical records.
-     * The record is created with the specified measurement value, record type, and
-     * timestamp.
+     * Adds a new record to the patient's record list.
      *
-     * @param measurementValue the measurement value to store in the record
-     * @param recordType       the type of record, e.g., "HeartRate",
-     *                         "BloodPressure"
-     * @param timestamp        the time at which the measurement was taken, in
-     *                         milliseconds since UNIX epoch
+     * @param measurementValue the value of the measurement
+     * @param recordType       the type of record (e.g., blood pressure, heart rate)
+     * @param timestamp        the timestamp of the record
      */
     public void addRecord(double measurementValue, String recordType, long timestamp) {
-        PatientRecord record = new PatientRecord(this.patientId, measurementValue, recordType, timestamp);
-        this.patientRecords.add(record);
+        this.patientRecords.add(new PatientRecord(this.patientId, measurementValue, recordType, timestamp));
     }
 
     /**
-     * Retrieves a list of PatientRecord objects for this patient that fall within a
-     * specified time range.
-     * The method filters records based on the start and end times provided.
+     * Retrieves patient records within a specified time range.
      *
-     * @param startTime the start of the time range, in milliseconds since UNIX
-     *                  epoch
-     * @param endTime   the end of the time range, in milliseconds since UNIX epoch
-     * @return a list of PatientRecord objects that fall within the specified time
-     *         range
+     * @param startTime the start time of the range (inclusive)
+     * @param endTime   the end time of the range (inclusive)
+     * @return a list of PatientRecord objects within the specified time range
      */
     public List<PatientRecord> getRecords(long startTime, long endTime) {
-        // TODO Implement and test this method
+        List<PatientRecord> recordsInRange = new ArrayList<>();
+        for (PatientRecord record : this.patientRecords) {
+            if (isRecordInRange(record, startTime, endTime)) {
+                recordsInRange.add(record);
+            }
+        }
+        return recordsInRange;
+    }
+
+    /**
+     * Checks if a record's timestamp is within the specified time range.
+     *
+     * @param record    the PatientRecord object to check
+     * @param startTime the start time of the range (inclusive)
+     * @param endTime   the end time of the range (inclusive)
+     * @return true if the record's timestamp is within the range, false otherwise
+     */
+    private boolean isRecordInRange(PatientRecord record, long startTime, long endTime) {
+        return record.getTimestamp() >= startTime && record.getTimestamp() <= endTime;
+    }
+
+    /**
+     * Retrieves the unique identifier of the patient.
+     *
+     * @return the patientId
+     */
+    public int getPatientId() {
+        return this.patientId;
     }
 }
+
+
